@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: mkdir -p out && javac -d out src/VaultX.java
+      - name: Round-trip encryption test
+        shell: bash
+        run: |
+          printf 'vaultx-ci-secret-%s\\n' "$(date +%s)" > plain.txt
+          java -cp out VaultX encrypt plain.txt encrypted.vx 'ci-password-123'
+          java -cp out VaultX decrypt encrypted.vx restored.txt 'ci-password-123'
+          cmp plain.txt restored.txt
